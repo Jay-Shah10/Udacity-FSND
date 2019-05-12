@@ -28,7 +28,7 @@ class webserverHandler(BaseHTTPRequestHandler):
         GET Method for the server.
         """
         try:
-            
+            # This is for restaurant only. this will display a list of restaurants.
             if self.path.endswith("/restaurant"):
                 # Gathering all resturant name from db.
                 restaurants = session.query(Restaurant).all()
@@ -44,18 +44,18 @@ class webserverHandler(BaseHTTPRequestHandler):
                 output += "<a href='/restaurant/new'> Make a new Restaurant.</a></br></br>"
                 for restaurant in restaurants:
                     output += restaurant.name + "</br>"
-                    output += "<a href='/restaurant/%s/edit'> Edit </a></br>" %restaurant.id
-                    output += "<a href='/restaurant/%s/delete'> Delete</a></br>" % restaurant.id
+                    output += "<a href='/restaurant/%s/edit'> Edit </a></br>" %restaurant.id # links to different urls.
+                    output += "<a href='/restaurant/%s/delete'> Delete</a></br>" % restaurant.id # links to differnt urls
                     output += "</br>"
                     output += "</body></html>"
                 self.wfile.write(output)
                 return 
             
-
+            # Edit hyperlink. Functionality for edit operation.
             if self.path.endswith("/edit"):
                 # Actions on what happens when you press the edit link.
-                restaurantIDPath = self.path.split("/")[2]
-                myRestaurantQuery = session.query(Restaurant).filter_by(id=restaurantIDPath).one()
+                restaurantIDPath = self.path.split("/")[2] # get the restaurant id from the url.
+                myRestaurantQuery = session.query(Restaurant).filter_by(id=restaurantIDPath).one() # query on that restaurant.
                 if myRestaurantQuery != []:
                     self.send_response(200)
                     self.send_header('Content-type', 'text/html')
@@ -64,6 +64,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                     output +="<h1>"
                     output += myRestaurantQuery.name
                     output += "</h1>"
+                    # form to edit the name of the restaurant.
                     output += """<form method='POST' enctype='multipart/form-data action='/restaurant/%s/edit>""" % restaurantIDPath
                     output += """<input name='newRestaurantName' type='text' placeholder ='%s'> """ % myRestaurantQuery.name
                     output += """<input type='submit' value='Rename'> """
@@ -71,7 +72,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                     output += "</body></html>"
                     self.wfile.write(output)
 
-
+            # functionality for the delete Hyperlink.
             if self.path.endswith("/delete"):
                 restaurantIDPath = self.path.split("/")[2]
                 myRestaurantQuery = session.query(Restaurant).filter_by(id=restaurantIDPath).one()
@@ -79,10 +80,13 @@ class webserverHandler(BaseHTTPRequestHandler):
                     self.send_response(200)
                     self.send_header('Content-type', 'text/html')
                     self.end_headers()
+
+                    # Print out a confirmation message.
                     output = ""
                     output += "<html><body>"
                     output += "<h1> Are you sure you want to delete %s?" %myRestaurantQuery.name
                     output += "</h1>"
+                    # form that shows the name of the restaurant to be deleted.
                     output += "<form method='POST' enctype='multipart/form-data' action='/restaurant/%s/delete'> " %restaurantIDPath
                     output += "<input type='submit' value='Delete'>"
                     output += "</form>"
@@ -91,7 +95,7 @@ class webserverHandler(BaseHTTPRequestHandler):
 
 
 
-
+            # adding a new restaurnt to the database and the list. 
             if self.path.endswith("/restaurant/new"): # URL for adding a new restaurant.
                 self.send_response(200) # sending a response code back.
                 self.send_header('Content-type', 'text/html')
@@ -108,7 +112,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                 self.wfile.write(output)
                 
 
-
+            # original example. prints out a nice Hello message.
             if self.path.endswith("/hello"): # if the url ends with /hello do the following.
                 self.send_response(200) # sends a response 200 for success.
                 self.send_header('Content-type', 'text/html') # returns some headers.
@@ -129,7 +133,7 @@ class webserverHandler(BaseHTTPRequestHandler):
 
 
 
-
+            # original example - prints out hola on the screen.
             if self.path.endswith("/hola"): # if the url ends with /hello do the following.
                 self.send_response(200) # sends a response 200 for success.
                 self.send_header('Content-type', 'text/html') # returns some headers.
@@ -159,25 +163,31 @@ class webserverHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """
         Over writes the post method from http base module. 
+        Resturns the result of what action the user took.
+        Few of the mains one: 
+        edit
+        delete.
+        adding a new restaurant.
         """
         try:
-
+            
+            # post if statment - take affect if the url ends with /edit.
             if self.path.endswith("/edit"):
                 ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
                 if ctype == 'multipart/form-data':
                     fields = cgi.parse_multipart(self.rfile, pdict)
-                    messagecontent = fields.get('newRestaurantName')
-                    restaurantIDPath = self.path.split("/")[2]
+                    messagecontent = fields.get('newRestaurantName') # variable from  html form.
+                    restaurantIDPath = self.path.split("/")[2] # Getting restaurant id.
 
-                    myRestaurantQuery = session.query(Restaurant).filter_by(id=restaurantIDPath).one()
-                    if myRestaurantQuery != []:
-                        myRestaurantQuery.name = messagecontent[0]
-                        session.add(myRestaurantQuery.name)
-                        session.commit()
+                    myRestaurantQuery = session.query(Restaurant).filter_by(id=restaurantIDPath).one() # query on the restaurant.
+                    if myRestaurantQuery != []: # if it not blank
+                        myRestaurantQuery.name = messagecontent[0] # from html form.
+                        session.add(myRestaurantQuery.name) # restaurant name.
+                        session.commit() # updating and pushing to database.
 
                         self.send_response(301)
                         self.send_header('Content-type', 'text/html')
-                        self.send_header('Location', '/restaurant')
+                        self.send_header('Location', '/restaurant') # redirect to the main page.
                         self.end_headers()
             
             if self.path.endswith("/delete"):
