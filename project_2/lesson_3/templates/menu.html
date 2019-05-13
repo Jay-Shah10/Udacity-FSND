@@ -1,0 +1,25 @@
+<html>
+<body>
+    <h1>{{ restaurant.name }}</h1>
+    {% for i in item %}
+
+    {{ i.name }}
+    <br>
+
+    {{ i.description }}
+    <br>
+
+    {{ i.price }}
+    <br>
+    <a href="{{ url_for('editMenuItem', restaurant_id=restaurant.id, menuitem_id=i.id) }}">Edit</a>
+    <a href="{{ url_for('deleteMenuItem', restaurant_id=restaurant.id, menuitem_id=i.id) }}">Delete</a>
+    <br>
+    <br>
+    {% endfor %}
+
+</body>
+</html>
+
+
+{#  {%%} is used for logical code. something like for loop. #}
+{# {{}} is used to execute what we want to display. result to be in html. #}
