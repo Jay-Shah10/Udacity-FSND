@@ -1,9 +1,11 @@
 <html>
 <body>
+    <a href="{{ url_for('restaurants') }}">Back</a>
+    <br>
     <h1>{{ restaurant.name }}</h1>
     {% for i in item %}
 
-    {{ i.name }}
+    <strong>{{ i.name }}</strong>
     <br>
 
     {{ i.description }}
@@ -16,7 +18,11 @@
     <br>
     <br>
     {% endfor %}
-
+    
+    <br>
+    
+    <a href="{{ url_for('newMenuItem', restaurant_id=restaurant_id) }}">New Menu Item.</a>
+    <br>
 </body>
 </html>
 
