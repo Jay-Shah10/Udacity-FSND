@@ -39,6 +39,17 @@ class MenuItem(Base):
 
    restaurant = relationship(Restaurant) # This shows the relationship between our restaurant table class.
 
+   # JSON creation.
+   @property
+   def serialize(self):
+      return {
+         'name':self.name, 
+         'description': self.description,
+         'id': self.id,
+         'price':self.price,
+         'course':self.course 
+      }
+
 
 
 
