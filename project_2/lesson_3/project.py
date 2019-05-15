@@ -1,7 +1,7 @@
 #!/usr/bin/python2
-
+import requests
 from flask import Flask
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, flash, jsonify
 app = Flask(__name__)
 
 # Adding in imports for out database.
@@ -16,6 +16,28 @@ Base.metadata.bind = engine
 # Database session.
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+#Making an API EndPoint (GET request)
+@app.route('/restaurant/<int:restaurant_id>/menu/json')
+def restaurantMenuJSON(restaurant_id):
+    """
+    This method is used to create a josn object for the menu page.
+    :restaurant_id: id from table restaurant.
+    :return: json object
+    """
+        
+    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
+    items = session.query(MenuItem).filter_by(restaurant_id=restaurant_id).all()
+    return jsonify(MenuItem=[i.serialize for i in items])
+
+# Make and API endpoint for specific menu item (GET Request)
+@app.route('/restaurant/<int:restaurant_id>/menu/<int:menuitem_id>/json')
+def menuItemJson(restaurant_id, menuitem_id):
+    """
+    Method used to create an api endpoint for specific menu items.
+    """
+    items = session.query(MenuItem).filter_by(id=menuitem_id).one()
+    return jsonify(MenuItem=items.serialize)
 
 @app.route('/')
 def restaurants():
@@ -70,6 +92,7 @@ def newMenuItem(restaurant_id):
         newItem = MenuItem(name=request.form['name'], restaurant_id=restaurant_id, description=request.form['description'], price=request.form['price'])
         session.add(newItem)
         session.commit()
+        flash("New Menu Item Created!") # this is a flash message, when the user adds a new menu item.
         return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
     else:
         return render_template('newmenuitem.html', restaurant_id=restaurant_id, restaurant=restaurant_name)
@@ -93,6 +116,7 @@ def editMenuItem(restaurant_id, menuitem_id):
             edited_menu_item.name = request.form['name']
             session.add(edited_menu_item)
             session.commit()
+            flash("Menu Item has been edited.") # flashes the message when the user edits an item.
             return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
     else:
             return render_template('editmenuitem.html', restaurant_id=restaurant_id, menuitem_id=menuitem_id, i=edited_menu_item)
@@ -114,13 +138,14 @@ def deleteMenuItem(restaurant_id, menuitem_id):
     if request.method == 'POST':
         session.delete(delete_menu_item)
         session.commit()
+        flash("Menu Item has been deleted.") # This will be displayed when the user delets a menu item.
         return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
 
     else: 
         return render_template('deletemenuitem.html', restaurant_id=restaurant_id, menuitem_id=menuitem_id, i=delete_menu_item)
-    
 
     
 if __name__ == '__main__':
+    app.secret_key = 'super_secret_key'
     app.debug = True
     app.run(host='0.0.0.0', port=5000)
