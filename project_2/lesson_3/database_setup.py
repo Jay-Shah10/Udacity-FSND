@@ -7,7 +7,25 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
+class User(Base):
+   """Class used to create user object in the database.
+   
+   Arguments:
+       Base {[type]} -- sqlalchmey library.
+   """
+   __tablename__='user' # Creating a table called user.
+
+   id = Column(Integer, primary_key=True) # primary key for the User table.
+   name = Column(String(250), nullable=False) # User's name. Needed, cannot be left blank.
+   email = Column(String(250), nullable=False) # user's email. Needed, cannot be left blank.
+   picture = Column(String(250)) # optional to add a picture of the user.
+
+
+
 class Restaurant(Base):
+   """"Class used to creat a table for Restaurant in the database."""
+   
+   
    __tablename__ = 'restaurant' # Creates a table called restaurant. 
 
    name = Column(String(80), nullable=False) # Creating column called name. 
@@ -19,9 +37,19 @@ class Restaurant(Base):
    # data type = Integer. 
    # Creates this as a primary key to the table.
 
+   user_id = Column(Integer, ForeignKey('user.id'))
+   user = relationship(User)
+
 
 
 class MenuItem(Base):
+   """ Class used to create a table for menuitem in the db.
+   
+   Keyword arguments:
+   Base -- part of sqlalchmey library.
+   Return: Creates a table in the db.
+   """
+   
    __tablename__ = 'menu_item'
    
    #  Creating columns in menu_item table.
@@ -39,6 +67,10 @@ class MenuItem(Base):
 
    restaurant = relationship(Restaurant) # This shows the relationship between our restaurant table class.
 
+   user_id = Column(Integer, ForeignKey('user.id')) # Adding a foreign Key to the Column.
+
+   user = relationship(User) # relationship to the User table.
+
    # JSON creation.
    @property
    def serialize(self):
@@ -51,7 +83,8 @@ class MenuItem(Base):
       }
 
 
+   
 
 
-engine = create_engine('sqlite:///restaurantmenu.db')
+engine = create_engine('sqlite:///restaurantmenuwithusers.db')
 Base.metadata.create_all(engine)
