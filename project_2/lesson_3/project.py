@@ -2,20 +2,90 @@
 import requests
 from flask import Flask
 from flask import render_template, redirect, url_for, request, flash, jsonify
-app = Flask(__name__)
 
 # Adding in imports for out database.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Restaurant, MenuItem
+from database_setup import Base, Restaurant, MenuItem, User
+
+from flask import session as login_session
+import random
+import string
+
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import FlowExchangeError
+import httplib2
+import json
+from flask import make_response
+
+app = Flask(__name__)
+
+CLIENT_ID = json.loads(
+        open('client_secrets.json', 'r').read()
+)['web']['client_id']
+APPLICATION_NAME = "Restaurant Menu Application"
 
 # Making a connection to out database.
-engine = create_engine('sqlite:///restaurantmenu.db', connect_args={'check_same_thread':False})
+engine = create_engine('sqlite:///restaurantmenuwithusers.db', connect_args={'check_same_thread':False}) # this part was added to stop different thread.id errors.
 Base.metadata.bind = engine 
 
 # Database session.
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+# Create a anit-forgery token.
+@app.route('/login')
+def showLogin():
+    """"Method to show login page and create a token."""
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+    for x in range(32))
+    login_session['state'] = state
+
+    return render_template("login.html", STATE=state)
+
+# This method is for connecting via google+
+# Google+ has been inactive since Dec 2018.
+# @app.route('/gconnect', method=['POST'])
+# def gconnect():
+
+def createUser(login_session):
+    """Creating a user. Helper function.
+        
+    Arguments:
+    login_session {[type]} -- Flask's login session.
+        
+    Returns:
+    Creates a new user in the database.
+    """
+    newUser = User(name=login_session['username'],
+                   email=login_session['email'],
+                   picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
+
+def getUserInfo(user_id):
+    """Helper funtion to get user's info.
+       
+    Arguments:
+    user_id {[int]} -- user'id from database.
+    """
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+def getUserID(email):
+    """Helper function to get User' id from the database.
+        
+    Arguments:
+    email {[string]} -- user's email.
+    """
+    try:
+       user = session.query(User).filter_by(email=email).one()
+       return user.id
+    except:
+       return None
+
 
 #Making an API EndPoint (GET request)
 @app.route('/restaurant/<int:restaurant_id>/menu/json')
