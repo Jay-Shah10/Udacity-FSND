@@ -27,4 +27,5 @@ Install python modules once the vm is activated.
 You will need Vagrant, which is a tool that is needed. Udacity provides this 
 for us to use.  
 
-
+### Resources
+* Udacity Full stack Developer Nano Degree.
