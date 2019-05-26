@@ -40,7 +40,9 @@ class Movies(Base):
 
     name = Column(String(250), nullable=False) # name of the movie.
 
-    description = Column(String(250), nullable=False) # description of the movie.
+    description = Column(String(500), nullable=False) # description of the movie.
+
+    year = Column(Integer, nullable=False) # This will contain the year the movie was released.
 
     genre_id = Column(Integer, ForeignKey('genre.id')) # foreign key to the genre table. Have to use '.id'
 
