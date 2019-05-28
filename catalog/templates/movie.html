@@ -1,0 +1,23 @@
+<html>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages  %}
+                <li><strong>{{ message }}</strong></li>
+            
+            {% endfor %}
+        
+        {% else %}
+        {% endif %}
+    <br>
+    <br>
+    {% endwith %}
+    
+    <h1>{{ movie.name }} </h1>
+    <p>{{ movie.year }}</p>
+    <h3>{{ movie.description }}</h3>
+    <br>
+    <a href="{{ url_for('editMovie', genre_id=genre.id, movie_id=movie.id) }}">Edit</a>
+    <a href="{{ url_for('deleteMovie', genre_id=genre.id, movie_id=movie.id) }}">Delete</a>
+</body>
+</html>
