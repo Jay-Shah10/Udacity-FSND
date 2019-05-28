@@ -24,7 +24,11 @@
    
 
     {% for genre in genres  %}
+<<<<<<< HEAD
         <a href="{{ url_for('showMovies', genre_id=genre.id) }}"><strong>{{ genre.name }}</strong></a>
+=======
+        <a href="#"><strong>{{ genre.name }}</strong></a>
+>>>>>>> e1c0621d737de9c1881c0a56e102256cce8d2d62
         <br>
         <a href="{{ url_for('editGenre', genre_id=genre.id) }}">Edit</a>
         <a href="{{ url_for('deleteGenre', genre_id=genre.id) }}">Delete</a>

@@ -24,7 +24,10 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+<<<<<<< HEAD
 ################# show genre ########################
+=======
+>>>>>>> e1c0621d737de9c1881c0a56e102256cce8d2d62
 @app.route('/genres/')
 def showGenres():
     """
@@ -34,7 +37,11 @@ def showGenres():
     genre = session.query(Genre).order_by(asc(Genre.name))
     return render_template('genre.html', genres=genre)
 
+<<<<<<< HEAD
 ################# edit genre ########################
+=======
+
+>>>>>>> e1c0621d737de9c1881c0a56e102256cce8d2d62
 # Edit Genres.
 @app.route('/genres/<int:genre_id>/edit/')
 def editGenre(genre_id):
@@ -54,7 +61,11 @@ def editGenre(genre_id):
         return render_template('editgenre.html', genre=edit_genre)
 
 
+<<<<<<< HEAD
 ################# delete Genre ########################
+=======
+
+>>>>>>> e1c0621d737de9c1881c0a56e102256cce8d2d62
 # Delete Genre.
 @app.route('/genres/<int:genre_id>/delete/', methods=['GET', 'POST'])
 def deleteGenre(genre_id):
@@ -74,7 +85,11 @@ def deleteGenre(genre_id):
         return render_template('delete.html', genre=delete_genre) # Displays the delete page.
 
 
+<<<<<<< HEAD
 ################# Add new Genre ########################
+=======
+
+>>>>>>> e1c0621d737de9c1881c0a56e102256cce8d2d62
 
 # add new Movie Genre.
 @app.route('/genres/new/', methods=['GET', 'POST'])
@@ -95,6 +110,7 @@ def newGenre():
         return render_template('newgenre.html')
 
 
+<<<<<<< HEAD
 ################# shows movies. ########################
 @app.route('/genres/<int:genre_id>/movies/')
 def showMovies(genre_id):
@@ -193,6 +209,13 @@ def deleteMovie(genre_id, movie_id):
         return redirect(url_for('showMovies', genre_id=genre.id))
     else:
         return render_template('deletemovie.html', genre=genre, movie=movie)
+=======
+############################ Creating movies #######################
+@app.route('/genres/<int:genre_id>/movies')
+def showMovies(genre_id):
+        pass
+
+>>>>>>> e1c0621d737de9c1881c0a56e102256cce8d2d62
 
 
 if __name__ == '__main__':
