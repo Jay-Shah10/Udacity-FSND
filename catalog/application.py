@@ -91,7 +91,7 @@ def newGenre():
     else:
         return render_template('newgenre.html')
         
-        
+
 ################# shows movies. ########################
 @app.route('/genres/<int:genre_id>/movies/')
 def showMovies(genre_id):
@@ -190,6 +190,36 @@ def deleteMovie(genre_id, movie_id):
         return redirect(url_for('showMovies', genre_id=genre.id))
     else:
         return render_template('deletemovie.html', genre=genre, movie=movie)
+
+################# JSON endpoints ########################
+# json endpoint for all genre.
+@app.route('/genres/json')
+def genreJSON():
+    """This will display genres in JSON form."""
+    genre = session.query(Genre).all()
+    return jsonify(genres=[g.serialize for g in genre])
+
+# json endpoint for all movies in a given genre.
+@app.route('/genres/<int:genre_id>/movies/json')
+def movieJSON(genre_id):
+    """ This will dispaly all movies in JSON form."""
+    movie = session.query(Movies).filter_by(genre_id=genre_id)
+    return jsonify(movies=[m.serialize for m in movie])
+
+# json endpoint for all movies.
+@app.route('/movies/json/')
+def allMoviesJSON():
+    """returns json object for all movies."""
+    movies = session.query(Movies).all()
+    return jsonify(movie = [m.serialize for m in movies])
+
+# json endpoint for one movie.
+@app.route('/genres/<int:genre_id>/movies/<int:movie_id>/json')
+def oneMovie(genre_id, movie_id):
+    """returns json object for a specific movie. """
+    genre = session.query(Genre).filter_by(id=genre_id).one()
+    movie = session.query(Movies).filter_by(id=movie_id).one()
+    return jsonify(movie.serialize)
 
 
 

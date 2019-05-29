@@ -1,5 +1,7 @@
-<html>
-<body>
+{% extends "main.html" %}
+{% block content %}
+
+
     <h1>Add New Movie for {{ genre.name }}</h1>
     
     <form action="{{ url_for('addNewMovie', genre_id=genre.id) }}" method="POST" id="newMenu">
@@ -16,5 +18,5 @@
     <br>
 
     <a href="{{ url_for('showMovies', genre_id=genre.id) }}">Cancel</a>
-</body>
-</html>
+
+{% endblock content %}

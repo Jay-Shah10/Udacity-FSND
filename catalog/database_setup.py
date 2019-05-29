@@ -21,6 +21,13 @@ class Genre(Base):
 
     id = Column(Integer, primary_key=True) # primary key for the genre table.
 
+    @property
+    def serialize(self):
+        return {
+            'name':self.name,
+            'genre_id': self.id
+        }
+
 
 class Movies(Base):
     """
@@ -47,6 +54,18 @@ class Movies(Base):
     genre_id = Column(Integer, ForeignKey('genre.id')) # foreign key to the genre table. Have to use '.id'
 
     genre = relationship(Genre) # shows the relationship to Genre table.
+
+    @property
+    def serialize(self):
+        new_description = self.description.split('\n')
+        final = " ".join(line.lstrip() for line in new_description)
+        return{
+            'movie_id': self.id,
+            'name':self.name,
+            'year': self.year,
+            'description': final,
+            'genre_id': self.genre_id,
+        }
 
 
 engine = create_engine("sqlite:///moviegenre.db")

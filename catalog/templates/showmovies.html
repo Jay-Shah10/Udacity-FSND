@@ -1,22 +1,6 @@
-<html>
-<body>
-    <h2>{{ genre.name }} Movies</h2>
+{% extends "main.html" %}
+{% block content %}
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages  %}
-                <li><strong>{{ message }}</strong></li>
-            
-            {% endfor %}
-        
-        {% else %}
-        {% endif %}
-    <br>
-    <br>
-    {% endwith %}
-
-    
-    
    {% for movie in movies  %}
         {% if movie.genre_id == genre.id %}
             <strong><a href="{{ url_for('movie', genre_id=genre.id, movie_id=movie.id) }}"> {{ movie.name }}</a></strong>  
@@ -26,5 +10,5 @@
     {% endfor %}
         
     <a href="{{ url_for('addNewMovie', genre_id=genre.id) }}">Add New</a>
-</body>
-</html>
+
+{% endblock content %}
