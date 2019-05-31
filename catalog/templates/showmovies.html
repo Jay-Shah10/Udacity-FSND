@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+{% block content %}
+
+   {% for movie in movies  %}
+        {% if movie.genre_id == genre.id %}
+            <strong><a href="{{ url_for('movie', genre_id=genre.id, movie_id=movie.id) }}"> {{ movie.name }}</a></strong>  
+            <br>
+            <br>
+        {% endif %}
+    {% endfor %}
+        
+    <a href="{{ url_for('addNewMovie', genre_id=genre.id) }}">Add New</a>
+
+{% endblock content %}

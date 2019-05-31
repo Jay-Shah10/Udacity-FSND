@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+{% block content %}
+
+
+    <h1> Edit this movie: {{ movie.name }}? </h1>
+
+    <form action="{{ url_for('editMovie', genre_id=genre.id, movie_id=movie.id) }}" method='POST' id='editmovie'>
+    <p>Title</p>
+    <input type="text" size='30' name='title' placeholder='{{movie.name}}'>
+    <p>Year</p>
+    <input type="text" size='10' name='year' placeholder="{{movie.year}}">
+    <p>Description</p>
+    <textarea name="description" id="editmovie" cols="30" rows="10" placeholder="{{movie.description}}"></textarea>
+    <br>
+    <input type="submit" value="Edit">
+    <br>
+    </form>
+
+    <a href="{{ url_for('showMovies', genre_id=genre.id) }}">Cancel</a>
+
+{% endblock content %}

@@ -1,0 +1,13 @@
+{% extends "main.html" %}
+{% block content %}
+
+    
+    <h1>{{ movie.name }} </h1>
+    <p>{{ movie.year }}</p>
+    <strong>{{ movie.description }}</strong>
+    <br>
+    <div class="edit_delete">
+        <a href="{{ url_for('editMovie', genre_id=genre.id, movie_id=movie.id) }}">Edit</a>
+        <a href="{{ url_for('deleteMovie', genre_id=genre.id, movie_id=movie.id) }}">Delete</a>
+    </div>
+{% endblock content %}

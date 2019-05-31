@@ -1,0 +1,22 @@
+{% extends "main.html" %}
+{% block content %}
+
+
+    <h1>Add New Movie for {{ genre.name }}</h1>
+    
+    <form action="{{ url_for('addNewMovie', genre_id=genre.id) }}" method="POST" id="newMenu">
+        <p>Name</p>
+        <input type="text" size='30' name='title'>
+        <p>Date</p>
+        <input type="text" size='10' name='date'>
+        <p>Description</p>
+        <textarea name="description" id="newMenu" cols="30" rows="10"></textarea>
+        <br>
+        <input type="submit" value='Create'>
+    </form>
+
+    <br>
+
+    <a href="{{ url_for('showMovies', genre_id=genre.id) }}">Cancel</a>
+
+{% endblock content %}
