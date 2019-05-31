@@ -1,5 +1,7 @@
-<html>
-<body>
+{% extends "main.html" %}
+{% block content %}
+
+
     <h1>Create new Genre.</h1>
     
     <form action="{{ url_for('newGenre') }}" method='POST'>
@@ -7,5 +9,4 @@
     <input type="submit" value='Add'>
     </form>
 
-</body>
-</html>
+{% endblock content %}

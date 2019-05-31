@@ -1,39 +1,20 @@
-<!Doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Genres</title>
-</head>
-<body>
+{% extends "main.html" %}
+{% block content %}
+
     <h2>Movie Genres</h2>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages  %}
-                <li><strong>{{ message }}</strong></li>
-            
-            {% endfor %}
-        
-        {% else %}
-        {% endif %}
-    <br>
-    <br>
-    {% endwith %}
-   
-
+    <div class="genre_list">
     {% for genre in genres  %}
-        <a href="#"><strong>{{ genre.name }}</strong></a>
+        <a href="{{ url_for('showMovies', genre_id=genre.id) }}"><strong>{{ genre.name }}</strong></a>
         <br>
-        <a href="{{ url_for('editGenre', genre_id=genre.id) }}">Edit</a>
-        <a href="{{ url_for('deleteGenre', genre_id=genre.id) }}">Delete</a>
+        <div class="edit_delete">
+            <a  href="{{ url_for('editGenre', genre_id=genre.id) }}">Edit</a>
+            <a  href="{{ url_for('deleteGenre', genre_id=genre.id) }}">Delete</a>
+        </div>
         <br>
         <br>
 
     {% endfor %}
-
-    <a href="{{ url_for('newGenre') }}">Create new Genre</a>
+    </div>
+    <a class="cancel" href="{{ url_for('newGenre') }}">Create new Genre</a>
     
-</body>
-</html>
+{% endblock content %}
