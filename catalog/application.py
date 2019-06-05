@@ -7,6 +7,7 @@ import httplib2
 
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from flask import session as login_session
+import random, string
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
@@ -23,6 +24,16 @@ Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+################# Login ########################
+@app.route('/login')
+def showLogin():
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+    for x in range(32))
+    login_session['state'] = state
+    return "The current sessin state is %s " %login_session['state']
+
+    # https://www.mattbutton.com/2019/01/05/google-authentication-with-python-and-flask/ use this to sign in with google
 
 ################# shows Genres ########################
 @app.route('/genres/')
