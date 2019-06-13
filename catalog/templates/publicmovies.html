@@ -1,0 +1,9 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "headers.html" %}
+    
+    <h1>{{ movie.name }} </h1>
+    <p>{{ movie.year }}</p>
+    <strong>{{ movie.description }}</strong>
+    <br>
+{% endblock content %}

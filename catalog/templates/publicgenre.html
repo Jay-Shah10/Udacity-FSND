@@ -1,0 +1,11 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "headers.html" %}
+    <h2>Movie Genres</h2>
+
+    {% for genre in genres  %}
+        <a href="{{ url_for('showMovies', genre_id=genre.id) }}"><strong>{{ genre.name }}</strong></a>
+        <br>
+    {% endfor %}
+
+{% endblock content %}

@@ -6,6 +6,13 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False)
+    email = Column(String(250), nullable=False)
+    picture = Column(String(250))
 
 class Genre(Base):
     """
@@ -18,8 +25,10 @@ class Genre(Base):
     __tablename__ = 'genre'
 
     name = Column(String(250), nullable=False) # Genre name on table.
-
     id = Column(Integer, primary_key=True) # primary key for the genre table.
+    
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
     @property
     def serialize(self):
@@ -54,6 +63,9 @@ class Movies(Base):
     genre_id = Column(Integer, ForeignKey('genre.id')) # foreign key to the genre table. Have to use '.id'
 
     genre = relationship(Genre) # shows the relationship to Genre table.
+
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
     @property
     def serialize(self):

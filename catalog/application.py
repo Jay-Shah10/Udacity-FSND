@@ -7,12 +7,13 @@ import httplib2
 
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from flask import session as login_session
+from flask import make_response
 import random, string
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 
-from database_setup import Genre, Movies, Base
+from database_setup import User, Genre, Movies, Base
 
 
 app = Flask(__name__)
@@ -22,18 +23,154 @@ app = Flask(__name__)
 engine = create_engine('sqlite:///moviegenre.db', connect_args={'check_same_thread':False}) # do not check for same thread.
 Base.metadata.bind = engine
 
+# binding a session.
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 ################# Login ########################
 @app.route('/login')
 def showLogin():
+    """
+        This will show a third party login in feature.
+        in this case we are using facebook to login.
+        For this method it will create a session token that can be used
+        to verify that the session is for the current user.
+    """
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
     for x in range(32))
     login_session['state'] = state
-    return "The current sessin state is %s " %login_session['state']
+    return render_template('login.html', STATE=state)
 
     # https://www.mattbutton.com/2019/01/05/google-authentication-with-python-and-flask/ use this to sign in with google
+
+################# facebook login ########################
+@app.route('/fbconnect', methods=['POST'])
+def fbconnect():
+    """
+        We are using a third party authentication provider to log in a user.
+        in this case we are using facebook. User must have a facebook account.
+    """
+    if request.args.get('state') != login_session['state']:
+        response = make_response(json.dumps('Invalid State Parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    access_token = request.data
+    # Exchanging short lived token to a long live token.
+    app_id = json.loads(open('fb_client_secrets.json', 'r').read())['web']['app_id']
+    app_secrets = json.loads(open('fb_client_secrets.json','r').read())['web']['app_secrets']
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_seceret=%s&fb_exchange_token=%s' %(app_id, app_secrets, access_token)
+    # url = 'https://graph.facebook.com/oauth/access_token=%s'%access_token
+    h = httplib2.Http()
+    result = h.request(url, "GET")[1]
+    # use token to get user info from API.
+    userinfo_url = 'https://graph.facebook.com/v2.8/me?'
+    # token = result.split(',')[0].split(":")[1].replace('"', '') # original.
+    token = result.split("&")[0] # new.
+    print 'token-- %s' %token
+    url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % access_token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
+    data = json.loads(result)
+    print json.dumps(data, indent=2, sort_keys=True)
+
+    login_session['provider'] = 'facebook'
+    login_session['username'] = data['name']
+    login_session['email'] = data['email']
+    login_session['facebook_id'] = data['id']
+    # print login_session
+
+    # The token must be stored  in the login_session in order to properly signout.
+    login_session['access_token'] = token
+
+    # see if user exists
+    user_id = getUserID(login_session['email'])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+
+    output = ''
+    output += '<h1>Welcome, '
+    output += login_session['username']
+    output += '</h1>'
+    flash("Now logged in as %s" % login_session['username'])
+    return output
+
+
+################# facebook disconnect ########################
+@app.route("/fbdisconnect")
+def fbdisconnect():
+    """
+    This will delete the access token from that was gathered from facebook.
+
+    :return: homepage. showGenres()
+    """
+    facebook_id = login_session['facebook_id']
+    # The access token must me included to successfully logout
+    access_token = login_session['access_token']
+    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
+    h = httplib2.Http()
+    result = h.request(url, method='DELETE')
+    # return "You have logged out."
+    return redirect(url_for("showGenres")) # redirects the user to the home page.
+
+
+# Disconnect based on provider
+@app.route('/disconnect')
+def disconnect():
+    """
+    THis method is used to logout.
+    Here we will call fbdisconnect to delete the access_token that is given to us
+    from facebook.
+    We are also deleting the values returned to use in login_session.
+    such as facebook_id, username, email, user_id, and provider.
+
+    : return: the homepage.
+    """
+    if 'provider' in login_session:
+        if login_session['provider'] == 'facebook':
+            fbdisconnect()
+            del login_session['facebook_id']
+            del login_session['username']
+            del login_session['email']
+            del login_session['user_id']
+            del login_session['provider']
+            print login_session
+        flash("You have successfully been logged out.")
+        return redirect(url_for('showGenres'))
+    else:
+        flash("You were not logged in")
+        return redirect(url_for('showGenres'))
+
+
+    
+
+################# User helper functions ########################
+def createUser(login_session):
+    """
+    Creates a user in the database if they do not exist.
+
+    :return: user_id - the primary key.
+    """
+    newUser = User(name=login_session['username'], email=login_session[
+                   'email'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
+
+# Helper functions.
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(email=email).one()
+        return user.id
+    except:
+        return None
+
 
 ################# shows Genres ########################
 @app.route('/genres/')
@@ -43,7 +180,10 @@ def showGenres():
     once the user clicks on this, it will display another page and it will show the actual movies.
     """
     genre = session.query(Genre).order_by(asc(Genre.name))
-    return render_template('genre.html', genres=genre)
+    if 'username' not in login_session:
+        return render_template('publicgenre.html', genres=genre)
+    else:
+        return render_template('genre.html', genres=genre)
 
 ################# Edit Genre. ########################
 # Edit Genres.
@@ -54,6 +194,8 @@ def editGenre(genre_id):
     You can edit a specific Genre.
     """
     edit_genre = session.query(Genre).filter_by(id=genre_id).one()
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
     if request.method == 'POST':
         if request.form['name']:
             edit_genre = request.form['name']
@@ -75,6 +217,8 @@ def deleteGenre(genre_id):
 
     # Getting the proper genre needed to delete by genre id.
     delete_genre = session.query(Genre).filter_by(id=genre_id).first()
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
     if request.method == 'POST': # this only happens if the method is post.
         session.delete(delete_genre)
         session.commit() # deleteing the Movie Genre.
@@ -92,6 +236,8 @@ def newGenre():
     The database will be updated and the list will be displayed on the homepage.
     """
     genre = Genre()
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
     if request.method == "POST":
         if request.form['name']:
             new_genre = request.form['name']
@@ -112,7 +258,10 @@ def showMovies(genre_id):
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(genre_id=genre.id).all()
 
-    return render_template('showmovies.html', movies=movie, genre=genre)
+    if 'username' not in login_session:
+        return render_template('publicshowmovies.html', movies=movie, genre=genre)
+    else:
+        return render_template('showmovies.html', movies=movie, genre=genre)
 
 
 ################# Add new Movie ########################
@@ -122,6 +271,8 @@ def addNewMovie(genre_id):
     This will add new movies to a genre.
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
 
     if request.method == 'POST':
        new_movie = Movies(name=request.form['title'], 
@@ -145,7 +296,11 @@ def movie(genre_id, movie_id):
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
-    return render_template('movie.html', movie=movie, genre=genre)
+    
+    if 'username' not in login_session:
+        return render_template('publicmovie.html', movie=movie, genre=genre)
+    else:
+        return render_template('movie.html', movie=movie, genre=genre)
 
 ################# Edit Movie ########################
 @app.route('/genres/<int:genre_id>/movies/<int:movie_id>/edit/', methods=['GET', 'POST'])
@@ -157,6 +312,8 @@ def editMovie(genre_id, movie_id):
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
     
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
     if request.method == 'POST':
         title = request.form['title']
         year = request.form['year']
@@ -193,6 +350,9 @@ def deleteMovie(genre_id, movie_id):
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
+
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
 
     if request.method=="POST":
         session.delete(movie)

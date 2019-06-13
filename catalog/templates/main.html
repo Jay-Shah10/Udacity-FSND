@@ -14,18 +14,10 @@
         <div class="headers">
         <a href="{{ url_for('showGenres') }}">Home</a>
         </div>
-        
-        <a href="#" onclick="signOut();">Sign in</a>
-        <a href="#" onclick="signOut();">Sign out</a>
-
-        <script>
-            function signOut() {
-            var auth2 = gapi.auth2.getAuthInstance();
-            auth2.signOut().then(function () {
-            console.log('User signed out.');
-                });
-            }
-        </script>
+        <!--
+        <a href="{{url_for('showLogin')}}">Click Here to Log in </a>
+        <a href="{{ url_for('fbdisconnect') }}" onclick="signOut();">Sign out</a>
+        -->
 
         <div class="message">
             {% with messages = get_flashed_messages() %}

@@ -1,0 +1,63 @@
+<html>
+<head>
+    <meta name="google-signin-client_id" content="653842356900-fbb9vqsfl0409brrth6rpi9don8ckr1q.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+</head>
+<body>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <script>
+        function onSignIn(googleUser) {
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+            console.log('Name: ' + profile.getName());
+            console.log('Image URL: ' + profile.getImageUrl());
+            console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+        }
+    </script>
+
+    <!-- Facebook login -->
+    
+    <script>
+    window.fbAsyncInit = function() {
+        FB.init({
+        appId      : '305493567022693',
+        cookie     : true,
+        xfbml      : true,
+        version    : 'v3.3'
+        });
+        
+        FB.AppEvents.logPageView();   
+        
+    };
+
+    (function(d, s, id){
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement(s); js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+    
+    FB.getLoginStatus(function(response) {
+        statusChangeCallback(response);
+    });
+    </script>
+
+    
+    <fb:login-button 
+    scope="public_profile,email"
+    onlogin="checkLoginState();">
+    </fb:login-button>
+    <script>
+        function checkLoginState() {
+        FB.getLoginStatus(function(response) {
+            statusChangeCallback(response);
+        });
+        }
+    </script>
+
+    
+    
+    
+</body>
+</html>
