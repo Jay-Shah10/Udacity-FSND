@@ -1,9 +1,7 @@
 #!/usr/bin/python2
 
 import os, sys, json
-import random
-import string
-import httplib2
+import random, string, httplib2
 
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from flask import session as login_session
@@ -31,15 +29,13 @@ session = DBSession()
 @app.route('/login')
 def showLogin():
     """
-        This will show a third party login in feature.
-        in this case we are using facebook to login.
         For this method it will create a session token that can be used
         to verify that the session is for the current user.
     """
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
     for x in range(32))
-    login_session['state'] = state
-    return render_template('login.html', STATE=state)
+    login_session['state'] = state # sets the session token with the token we have created.
+    return render_template('login.html', STATE=state) 
 
     # https://www.mattbutton.com/2019/01/05/google-authentication-with-python-and-flask/ use this to sign in with google
 
@@ -63,7 +59,7 @@ def fbconnect():
     h = httplib2.Http()
     result = h.request(url, "GET")[1]
     # use token to get user info from API.
-    userinfo_url = 'https://graph.facebook.com/v2.8/me?'
+    # userinfo_url = 'https://graph.facebook.com/v2.8/me?'
     # token = result.split(',')[0].split(":")[1].replace('"', '') # original.
     token = result.split("&")[0] # new.
     print 'token-- %s' %token
@@ -109,7 +105,7 @@ def fbdisconnect():
     access_token = login_session['access_token']
     url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
     h = httplib2.Http()
-    result = h.request(url, method='DELETE')
+    h.request(url, method='DELETE')
     # return "You have logged out."
     return redirect(url_for("showGenres")) # redirects the user to the home page.
 
@@ -149,6 +145,8 @@ def createUser(login_session):
     """
     Creates a user in the database if they do not exist.
 
+    :login_session: This session from flask, which we are using to get current 
+    session for a user.
     :return: user_id - the primary key.
     """
     newUser = User(name=login_session['username'], email=login_session[
@@ -178,6 +176,11 @@ def showGenres():
     """
     This method will dispaly all movie genres. They will be clickable.
     once the user clicks on this, it will display another page and it will show the actual movies.
+
+    : return :
+        if the user is not signed in it will display the public version of genres page.
+        if the user is logged in it will render a genres page for the user.
+        This will give them the ability to edit, delete, and add new genres.
     """
     genre = session.query(Genre).order_by(asc(Genre.name))
     if 'username' not in login_session:
@@ -192,6 +195,11 @@ def editGenre(genre_id):
     """
     This method is responsible for making edits to the genre name.
     You can edit a specific Genre.
+
+    :genre_id: genre's id.
+    :return: 
+        If the user edits it will update the genre and redirect them to the showGenres page.
+        Renders the editgenre.html page.
     """
     edit_genre = session.query(Genre).filter_by(id=genre_id).one()
     if 'username' not in login_session:
@@ -213,6 +221,15 @@ def deleteGenre(genre_id):
     """
     This method is responsible for deleting a particular Genre.
     The user will be asked for a confirmation before deleting.
+
+    :genre_id: genre's id.
+    :return: 
+        if the user is not signed in it will redirect the user to the login page.
+        this will not happen tho, since the user needs to be signed inorder for 
+        edit/delet/create new option to show.
+
+        renders a confirmation page. if they continue it will delet the genre from 
+        the database.
     """
 
     # Getting the proper genre needed to delete by genre id.
@@ -234,8 +251,12 @@ def newGenre():
     """
     User can creat a new Move Genere.
     The database will be updated and the list will be displayed on the homepage.
+
+    : return: renders a page where the user can add a new genre. This will only happen 
+    when the user the logged in.
+    renders a form where the user can add a new genre.
     """
-    genre = Genre()
+    Genre()
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
     if request.method == "POST":
@@ -254,6 +275,12 @@ def newGenre():
 def showMovies(genre_id):
     """This will display movies based on genres.
        this is connected via genre id. this is acting as foreign key in the movies table.
+
+       :genre_id: a particular genre's id.
+
+       :return: 
+        this will display the public version of the movies page when a user is not signed in.
+        if they are signed they will have options to edit, delete, and add new movies under a specific genres.
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(genre_id=genre.id).all()
@@ -269,6 +296,12 @@ def showMovies(genre_id):
 def addNewMovie(genre_id):
     """
     This will add new movies to a genre.
+
+    :genre_id: genre's id.
+
+    :return: if the user is logged in they will be presented with a form to 
+    add a new move under a particular genre. 
+    Diplays newmovie.html page.
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     if 'username' not in login_session:
@@ -293,6 +326,13 @@ def movie(genre_id, movie_id):
     """
     This method is responsible for makeing edits to the
     movie title, description, and year.
+
+    :genre_id: genre's id.
+    :movie_id: one movie's id.
+    
+    :return:
+        if the user is logged in they will have an option to edit, delete, and add new movie.
+        else a genral public facing page will be displayed.
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
@@ -308,6 +348,13 @@ def editMovie(genre_id, movie_id):
     """
     Responsible for makeing edits to the selected movie. 
     Make edits to the name, year, and description.
+
+    :genre_id: genre's id.
+    :movie_id: movie's id.
+
+    :return: 
+    shows a form to the user where they can edit a movie.
+    That is if the user is signed in.
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
@@ -347,6 +394,13 @@ def deleteMovie(genre_id, movie_id):
     This is used to delete a movie in the list.
     The use will get a confirmation pormpt. if they do so, they will redirected to the 
     show movies page. Flash mesage will be displayed stating they have deleted a movie.
+
+    :genre_id: genre's id.
+    :movie_id: movie's id.
+
+    :return: 
+        if the user is signed in they will have the ability to delete a move
+        under a genre.
     """
     genre = session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
@@ -388,7 +442,7 @@ def allMoviesJSON():
 @app.route('/genres/<int:genre_id>/movies/<int:movie_id>/json')
 def oneMovie(genre_id, movie_id):
     """returns json object for a specific movie. """
-    genre = session.query(Genre).filter_by(id=genre_id).one()
+    session.query(Genre).filter_by(id=genre_id).one()
     movie = session.query(Movies).filter_by(id=movie_id).one()
     return jsonify(movie.serialize)
 
@@ -397,4 +451,4 @@ def oneMovie(genre_id, movie_id):
 if __name__ == '__main__':
     app.secret_key = 'secret_key'
     app.debug = True
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8000)

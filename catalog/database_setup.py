@@ -28,7 +28,7 @@ class Genre(Base):
     id = Column(Integer, primary_key=True) # primary key for the genre table.
     
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    user = relationship(User, cascade='save-update, delete')
 
     @property
     def serialize(self):
@@ -61,11 +61,10 @@ class Movies(Base):
     year = Column(Integer, nullable=False) # This will contain the year the movie was released.
 
     genre_id = Column(Integer, ForeignKey('genre.id')) # foreign key to the genre table. Have to use '.id'
-
-    genre = relationship(Genre) # shows the relationship to Genre table.
+    genre = relationship(Genre, cascade='save-update, delete') # shows the relationship to Genre table.
 
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    user = relationship(User, cascade='save-update, delete')
 
     @property
     def serialize(self):
